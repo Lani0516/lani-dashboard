@@ -1,10 +1,9 @@
-import type { ThemeConfig, ThemeId } from '@shared/types/index.js';
+import type { PaletteConfig, ThemeColors, ThemePalette, ThemeMode } from '@shared/types/index.js';
 
-export const themes: Record<ThemeId, ThemeConfig> = {
-  dark: {
-    id: 'dark',
-    name: 'Dark',
-    colors: {
+export const palettes: Record<ThemePalette, PaletteConfig> = {
+  default: {
+    name: 'Default',
+    dark: {
       bg: '#0f0f0f',
       bgCard: '#1a1a1a',
       bgHover: '#252525',
@@ -18,11 +17,7 @@ export const themes: Record<ThemeId, ThemeConfig> = {
       error: '#ef4444',
       border: '#27272a',
     },
-  },
-  light: {
-    id: 'light',
-    name: 'Light',
-    colors: {
+    light: {
       bg: '#f8fafc',
       bgCard: '#ffffff',
       bgHover: '#f1f5f9',
@@ -37,28 +32,9 @@ export const themes: Record<ThemeId, ThemeConfig> = {
       border: '#e2e8f0',
     },
   },
-  midnight: {
-    id: 'midnight',
-    name: 'Midnight',
-    colors: {
-      bg: '#020617',
-      bgCard: '#0f172a',
-      bgHover: '#1e293b',
-      text: '#e2e8f0',
-      textMuted: '#64748b',
-      primary: '#38bdf8',
-      secondary: '#818cf8',
-      accent: '#c084fc',
-      success: '#34d399',
-      warning: '#fbbf24',
-      error: '#f87171',
-      border: '#1e293b',
-    },
-  },
   nord: {
-    id: 'nord',
     name: 'Nord',
-    colors: {
+    dark: {
       bg: '#2e3440',
       bgCard: '#3b4252',
       bgHover: '#434c5e',
@@ -72,11 +48,24 @@ export const themes: Record<ThemeId, ThemeConfig> = {
       error: '#bf616a',
       border: '#4c566a',
     },
+    light: {
+      bg: '#eceff4',
+      bgCard: '#e5e9f0',
+      bgHover: '#dce1ea',
+      text: '#2e3440',
+      textMuted: '#4c566a',
+      primary: '#4c688f',
+      secondary: '#5e7f9e',
+      accent: '#8a5e82',
+      success: '#5e7d3f',
+      warning: '#a37a1e',
+      error: '#a3434c',
+      border: '#c8d0dd',
+    },
   },
   catppuccin: {
-    id: 'catppuccin',
     name: 'Catppuccin',
-    colors: {
+    dark: {
       bg: '#1e1e2e',
       bgCard: '#313244',
       bgHover: '#45475a',
@@ -90,15 +79,44 @@ export const themes: Record<ThemeId, ThemeConfig> = {
       error: '#f38ba8',
       border: '#45475a',
     },
+    light: {
+      bg: '#eff1f5',
+      bgCard: '#e6e9ef',
+      bgHover: '#dce0e8',
+      text: '#4c4f69',
+      textMuted: '#6c6f85',
+      primary: '#1e66f5',
+      secondary: '#8839ef',
+      accent: '#ea76cb',
+      success: '#40a02b',
+      warning: '#df8e1d',
+      error: '#d20f39',
+      border: '#ccd0da',
+    },
   },
 };
 
-export function applyTheme(themeId: ThemeId) {
-  const theme = themes[themeId];
-  if (!theme) return;
+export const paletteList = Object.entries(palettes).map(([id, cfg]) => ({
+  id: id as ThemePalette,
+  name: cfg.name,
+}));
+
+export function resolveMode(mode: ThemeMode): 'light' | 'dark' {
+  if (mode === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return mode;
+}
+
+export function applyTheme(palette: ThemePalette, mode: ThemeMode) {
+  const cfg = palettes[palette] ?? palettes.default;
+  const resolved = resolveMode(mode);
+  const colors: ThemeColors = cfg[resolved];
 
   const root = document.documentElement;
-  for (const [key, value] of Object.entries(theme.colors)) {
+  root.setAttribute('data-theme', resolved);
+  root.setAttribute('data-palette', palette);
+  for (const [key, value] of Object.entries(colors)) {
     const cssVar = `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
     root.style.setProperty(cssVar, value);
   }

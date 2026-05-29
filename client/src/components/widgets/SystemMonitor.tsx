@@ -123,21 +123,6 @@ export function SystemMonitor() {
               <div className="text-text font-mono text-[10px]">{stats.cpu.model.slice(0, 30)}</div>
             </div>
           </div>
-
-          {stats.network.interfaces.length > 0 && (
-            <div className="space-y-1">
-              <span className="text-text-muted text-xs">Network</span>
-              {stats.network.interfaces.map((iface) => (
-                <div key={iface.name} className="flex justify-between text-xs font-mono">
-                  <span className="text-text-muted">{iface.name}</span>
-                  <span className="text-text inline-flex items-center gap-1">
-                    <FaArrowDown size={9} />{formatBytes(iface.rxSpeed)}/s
-                    <FaArrowUp size={9} className="ml-1" />{formatBytes(iface.txSpeed)}/s
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </WidgetCard>

@@ -38,8 +38,41 @@ async function getCpuTemp(): Promise<number | undefined> {
   }
 }
 
-function getNetworkStats(): NetworkInterface[] {
+// Read cumulative rx/tx byte counters per interface from the OS.
+async function readByteCounters(): Promise<Map<string, { rx: number; tx: number }>> {
+  const counters = new Map<string, { rx: number; tx: number }>();
+
+  if (process.platform === 'linux') {
+    try {
+      const content = await readFile('/proc/net/dev', 'utf8');
+      for (const line of content.split('\n')) {
+        const m = line.match(/^\s*([^:]+):\s+(.*)$/);
+        if (!m) continue;
+        const name = m[1].trim();
+        const cols = m[2].trim().split(/\s+/).map(Number);
+        // cols: rxBytes(0) ... txBytes(8)
+        counters.set(name, { rx: cols[0] || 0, tx: cols[8] || 0 });
+      }
+    } catch {}
+  } else {
+    // macOS / BSD: netstat -ib. Use the <Link#> row which carries full byte totals.
+    try {
+      const { stdout } = await execAsync('netstat -ibn 2>/dev/null');
+      for (const line of stdout.split('\n')) {
+        const f = line.trim().split(/\s+/);
+        if (f.length < 11 || !f[2]?.startsWith('<Link')) continue;
+        // 0 name,1 mtu,2 network,3 address,4 ipkts,5 ierrs,6 ibytes,7 opkts,8 oerrs,9 obytes
+        counters.set(f[0], { rx: Number(f[6]) || 0, tx: Number(f[9]) || 0 });
+      }
+    } catch {}
+  }
+
+  return counters;
+}
+
+async function getNetworkStats(): Promise<NetworkInterface[]> {
   const ifaces = networkInterfaces();
+  const counters = await readByteCounters();
   const now = Date.now();
   const result: NetworkInterface[] = [];
 
@@ -48,22 +81,26 @@ function getNetworkStats(): NetworkInterface[] {
     const hasIPv4 = addrs.some(a => a.family === 'IPv4' && !a.internal);
     if (!hasIPv4) continue;
 
+    const c = counters.get(name) ?? { rx: 0, tx: 0 };
     const prev = prevNetStats.get(name);
     const iface: NetworkInterface = {
       name,
-      rxBytes: 0,
-      txBytes: 0,
+      rxBytes: c.rx,
+      txBytes: c.tx,
       rxSpeed: 0,
       txSpeed: 0,
     };
 
     if (prev) {
       const elapsed = (now - prev.time) / 1000;
-      iface.rxSpeed = elapsed > 0 ? Math.round((iface.rxBytes - prev.rx) / elapsed) : 0;
-      iface.txSpeed = elapsed > 0 ? Math.round((iface.txBytes - prev.tx) / elapsed) : 0;
+      // guard against counter reset/wrap (negative delta)
+      const rxDelta = c.rx - prev.rx;
+      const txDelta = c.tx - prev.tx;
+      iface.rxSpeed = elapsed > 0 && rxDelta >= 0 ? Math.round(rxDelta / elapsed) : 0;
+      iface.txSpeed = elapsed > 0 && txDelta >= 0 ? Math.round(txDelta / elapsed) : 0;
     }
 
-    prevNetStats.set(name, { rx: iface.rxBytes, tx: iface.txBytes, time: now });
+    prevNetStats.set(name, { rx: c.rx, tx: c.tx, time: now });
     result.push(iface);
   }
 
@@ -71,9 +108,8 @@ function getNetworkStats(): NetworkInterface[] {
 }
 
 export async function getSystemStats(): Promise<SystemStats> {
-  const [cpuUsage, cpuTemp] = await Promise.all([getCpuUsage(), getCpuTemp()]);
+  const [cpuUsage, cpuTemp, interfaces] = await Promise.all([getCpuUsage(), getCpuTemp(), getNetworkStats()]);
   const cpuInfo = cpus();
-  const interfaces = getNetworkStats();
 
   return {
     cpu: {

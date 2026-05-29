@@ -160,32 +160,36 @@ export interface WOLDevice {
 
 // ── Theme ──
 
-export type ThemeId = 'dark' | 'light' | 'midnight' | 'nord' | 'catppuccin';
+export type ThemePalette = 'default' | 'nord' | 'catppuccin';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
-export interface ThemeConfig {
-  id: ThemeId;
+export interface ThemeColors {
+  bg: string;
+  bgCard: string;
+  bgHover: string;
+  text: string;
+  textMuted: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  success: string;
+  warning: string;
+  error: string;
+  border: string;
+}
+
+export interface PaletteConfig {
   name: string;
-  colors: {
-    bg: string;
-    bgCard: string;
-    bgHover: string;
-    text: string;
-    textMuted: string;
-    primary: string;
-    secondary: string;
-    accent: string;
-    success: string;
-    warning: string;
-    error: string;
-    border: string;
-  };
+  light: ThemeColors;
+  dark: ThemeColors;
 }
 
 // ── Dashboard Config ──
 
 export interface DashboardConfig {
   widgets: WidgetConfig[];
-  theme: ThemeId;
+  palette: ThemePalette;
+  mode: ThemeMode;
   refreshInterval: number;
   connections: SFTPConnection[];
   aiProviders: AIProvider[];

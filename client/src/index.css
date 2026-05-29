@@ -15,6 +15,7 @@
   --color-warning: #eab308;
   --color-error: #ef4444;
   --color-border: #27272a;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 body {
@@ -26,6 +27,27 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+[data-theme="light"] .logo-img {
+  filter: invert(1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none;
 }
 
 ::-webkit-scrollbar {

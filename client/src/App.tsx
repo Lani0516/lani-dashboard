@@ -12,10 +12,20 @@ import { VPNWidget } from './components/widgets/VPNWidget';
 import { WOLWidget } from './components/widgets/WOLWidget';
 import { SFTPManager } from './components/widgets/SFTPManager';
 import { ClockWidget } from './components/widgets/ClockWidget';
-import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord } from 'react-icons/fa6';
+import { NetworkWidget } from './components/widgets/NetworkWidget';
+import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode } from 'react-icons/fa6';
 import { applyTheme } from './themes/themes';
 import { useWebSocket } from './hooks/useWebSocket';
-import type { ThemeId } from '@shared/types/index.js';
+import { useLocalStorage } from './hooks/useLocalStorage';
+import { Sidebar } from './components/Sidebar';
+import { SettingsModal } from './components/SettingsModal';
+import { Workspace } from './components/workspace/Workspace';
+import { Login } from './components/Login';
+import { api, getToken } from './services/api';
+import { applyFontPrefs, DEFAULT_FONT_PREFS, type FontPrefs } from './fonts';
+import type { ThemePalette, ThemeMode } from '@shared/types/index.js';
+
+type View = 'dashboard' | 'workspace';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -29,6 +39,7 @@ const defaultLayouts = {
     { i: 'wol', x: 8, y: 4, w: 4, h: 3 },
     { i: 'sftp', x: 0, y: 7, w: 6, h: 5 },
     { i: 'clock', x: 6, y: 7, w: 4, h: 3 },
+    { i: 'network', x: 6, y: 10, w: 4, h: 4 },
   ],
   md: [
     { i: 'system', x: 0, y: 0, w: 5, h: 4 },
@@ -39,6 +50,7 @@ const defaultLayouts = {
     { i: 'wol', x: 5, y: 8, w: 5, h: 3 },
     { i: 'sftp', x: 0, y: 11, w: 10, h: 5 },
     { i: 'clock', x: 0, y: 16, w: 5, h: 3 },
+    { i: 'network', x: 5, y: 16, w: 5, h: 4 },
   ],
   sm: [
     { i: 'system', x: 0, y: 0, w: 6, h: 4 },
@@ -49,6 +61,7 @@ const defaultLayouts = {
     { i: 'wol', x: 0, y: 19, w: 6, h: 3 },
     { i: 'sftp', x: 0, y: 22, w: 6, h: 5 },
     { i: 'clock', x: 0, y: 27, w: 6, h: 3 },
+    { i: 'network', x: 0, y: 30, w: 6, h: 4 },
   ],
 };
 
@@ -67,7 +80,15 @@ const widgetMap: Record<string, WidgetMeta> = {
   wol: { label: 'Wake-on-LAN', icon: <FaBolt />, render: () => <WOLWidget /> },
   sftp: { label: 'SFTP Manager', icon: <FaFolder />, render: () => <SFTPManager /> },
   clock: { label: 'Clock', icon: <FaRegClock />, render: () => <ClockWidget /> },
+  network: { label: 'Network', icon: <FaNetworkWired />, render: () => <NetworkWidget /> },
 };
+
+const socialLinks = [
+  { label: 'GitHub', href: 'https://github.com/Lani0516', icon: <FaGithub /> },
+  { label: 'Email', href: 'mailto:landedwriter0103@gmail.com', icon: <FaEnvelope /> },
+  { label: 'Facebook', href: 'https://www.fb.com/liu.wen.en.235257', icon: <FaFacebook /> },
+  { label: 'Instagram', href: '#', icon: <FaInstagram /> },
+];
 
 const defaultWidgets = Object.keys(widgetMap).filter((k) => k !== 'ai-tokens');
 
@@ -79,15 +100,46 @@ const sizeDefaults: Record<string, Record<string, { w: number; h: number }>> = O
 );
 
 export function App() {
-  const [theme, setTheme] = useState<ThemeId>('dark');
+  const [palette, setPalette] = useLocalStorage<ThemePalette>('dashboard-palette', 'default');
+  const [mode, setMode] = useLocalStorage<ThemeMode>('dashboard-mode', 'dark');
+  const [fontPrefs, setFontPrefs] = useLocalStorage<FontPrefs>('dashboard-fonts', DEFAULT_FONT_PREFS);
   const [layouts, setLayouts] = useState(defaultLayouts);
   const [activeWidgets, setActiveWidgets] = useState<string[]>(defaultWidgets);
   const [editMode, setEditMode] = useState(false);
-  const { connected } = useWebSocket();
+  const [sidebarOpen, setSidebarOpen] = useLocalStorage('dashboard-sidebar-open', true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [view, setView] = useState<View>('dashboard');
+  const [authState, setAuthState] = useState<'checking' | 'locked' | 'ready'>('checking');
+  useWebSocket();
 
   useEffect(() => {
-    applyTheme(theme);
+    api.auth
+      .status()
+      .then(async ({ authEnabled }) => {
+        if (!authEnabled) return setAuthState('ready');
+        if (!getToken()) return setAuthState('locked');
+        try {
+          await api.files.root();
+          setAuthState('ready');
+        } catch {
+          setAuthState('locked');
+        }
+      })
+      .catch(() => setAuthState('ready'));
   }, []);
+
+  useEffect(() => {
+    applyFontPrefs(fontPrefs);
+  }, [fontPrefs]);
+
+  useEffect(() => {
+    applyTheme(palette, mode);
+    if (mode !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyTheme(palette, mode);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [palette, mode]);
 
   useEffect(() => {
     const saved = localStorage.getItem('dashboard-layouts');
@@ -141,41 +193,79 @@ export function App() {
 
   const hiddenWidgets = defaultWidgets.filter((k) => !activeWidgets.includes(k));
 
+  const pageTitle = view === 'dashboard' ? 'Dashboard' : 'Workspace';
+
+  const sidebarSections = [
+    {
+      title: 'Views',
+      items: [
+        { key: 'dashboard', label: 'Dashboard', icon: <FaGaugeHigh /> },
+        { key: 'workspace', label: 'Workspace', icon: <FaCode /> },
+      ],
+    },
+  ];
+
+  if (authState === 'checking') {
+    return <div className="h-screen bg-bg" />;
+  }
+  if (authState === 'locked') {
+    return <Login onAuthed={() => setAuthState('ready')} />;
+  }
+
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="border-b border-border px-6 py-3 flex items-center justify-between">
+    <div className={`bg-bg flex ${view === 'workspace' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+      <Sidebar
+        sections={sidebarSections}
+        activeKey={view}
+        onSelect={(key) => setView(key as View)}
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen((v) => !v)}
+        onSettings={() => setSettingsOpen(true)}
+      />
+      <div
+        className={`flex-1 flex flex-col min-w-0 min-h-0 transition-[margin] duration-200 ease-out ${
+          sidebarOpen ? 'ml-60' : 'ml-16'
+        }`}
+      >
+      <header className="border-b border-border px-6 h-14 flex items-center justify-between shrink-0">
+        <h1 className="text-lg font-bold text-text">{pageTitle}</h1>
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-text">Lani Dashboard</h1>
-          <span className={`w-2 h-2 rounded-full ${connected ? 'bg-success' : 'bg-error'}`} />
-        </div>
-        <div className="flex items-center gap-3">
-          <ThemeSwitcher current={theme} onChange={setTheme} />
-          {editMode && (
-            <button
-              onClick={resetLayout}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border border-border text-text-secondary hover:text-text hover:border-primary transition-colors"
-              title="Reset layout and panels to default"
-            >
-              <FaArrowsRotate size={13} />
-              Reset
-            </button>
+          {view === 'dashboard' && (
+            <>
+              <button
+                onClick={() => setEditMode((v) => !v)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                  editMode
+                    ? 'bg-primary text-white border-primary'
+                    : 'border-border text-text-secondary hover:text-text hover:border-primary'
+                }`}
+                title={editMode ? 'Done editing' : 'Edit layout'}
+              >
+                <FaPenToSquare size={13} />
+                {editMode ? 'Done' : 'Edit'}
+              </button>
+              {editMode && (
+                <button
+                  onClick={resetLayout}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border border-border text-text-secondary hover:text-text hover:border-primary transition-colors"
+                  title="Reset layout and panels to default"
+                >
+                  <FaArrowsRotate size={13} />
+                  Reset
+                </button>
+              )}
+            </>
           )}
-          <button
-            onClick={() => setEditMode((v) => !v)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-              editMode
-                ? 'bg-primary text-white border-primary'
-                : 'border-border text-text-secondary hover:text-text hover:border-primary'
-            }`}
-            title={editMode ? 'Done editing' : 'Edit layout'}
-          >
-            <FaPenToSquare size={13} />
-            {editMode ? 'Done' : 'Edit'}
-          </button>
+          <ThemeSwitcher
+            palette={palette}
+            mode={mode}
+            onPaletteChange={setPalette}
+            onModeChange={setMode}
+          />
         </div>
       </header>
 
-      {editMode && (
+      {view === 'dashboard' && editMode && (
         <div className="bg-primary/10 border-b border-primary/30 px-6 py-2 text-xs text-primary">
           <div className="text-center mb-2">
             Edit mode — drag to move, drag corner to resize, click the corner button to remove. Click Done when finished.
@@ -199,34 +289,86 @@ export function App() {
         </div>
       )}
 
-      <main className="p-4">
-        <ResponsiveGridLayout
-          className={`layout ${editMode ? 'edit-mode' : ''}`}
-          layouts={layouts}
-          breakpoints={{ lg: 1200, md: 996, sm: 768 }}
-          cols={{ lg: 12, md: 10, sm: 6 }}
-          rowHeight={60}
-          onLayoutChange={handleLayoutChange}
-          isResizable={editMode}
-          isDraggable={editMode}
-          draggableCancel=".widget-remove"
-        >
-          {activeWidgets.map((key) => (
-            <div key={key}>
-              {editMode && (
-                <button
-                  onClick={() => removeWidget(key)}
-                  className="widget-remove absolute -top-2 -right-2 z-10 w-6 h-6 flex items-center justify-center rounded-full bg-error text-white shadow hover:scale-110 transition-transform"
-                  title={`Remove ${widgetMap[key].label}`}
-                >
-                  <FaXmark size={12} />
-                </button>
-              )}
-              {widgetMap[key].render()}
-            </div>
+      {view === 'workspace' ? (
+        <main className="flex-1 min-h-0">
+          <Workspace />
+        </main>
+      ) : (
+        <main className="p-4 flex-1">
+          <ResponsiveGridLayout
+            className={`layout ${editMode ? 'edit-mode' : ''}`}
+            layouts={layouts}
+            breakpoints={{ lg: 1200, md: 996, sm: 768 }}
+            cols={{ lg: 12, md: 10, sm: 6 }}
+            rowHeight={60}
+            onLayoutChange={handleLayoutChange}
+            isResizable={editMode}
+            isDraggable={editMode}
+            draggableCancel=".widget-remove"
+          >
+            {activeWidgets.map((key) => (
+              <div key={key} id={`widget-${key}`}>
+                {editMode && (
+                  <button
+                    onClick={() => removeWidget(key)}
+                    className="widget-remove absolute -top-2 -right-2 z-10 w-6 h-6 flex items-center justify-center rounded-full bg-error text-white shadow hover:scale-110 transition-transform"
+                    title={`Remove ${widgetMap[key].label}`}
+                  >
+                    <FaXmark size={12} />
+                  </button>
+                )}
+                {widgetMap[key].render()}
+              </div>
+            ))}
+          </ResponsiveGridLayout>
+        </main>
+      )}
+
+      <footer className="shrink-0 border-t border-border px-6 py-5 flex flex-col sm:grid sm:grid-cols-3 items-center gap-4">
+        <div className="flex items-center gap-3 sm:justify-self-start">
+          <img src="/logo.png" alt="" className="logo-img w-7 h-7" />
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-text">Lani Dashboard</span>
+            <span className="text-xs text-text-muted">Self-hosted homelab control panel</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 sm:justify-self-center">
+          {socialLinks.map((s) => (
+            <a
+              key={s.label}
+              href={s.href}
+              target="_blank"
+              rel="noreferrer"
+              title={s.label}
+              aria-label={s.label}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-text-secondary hover:text-primary hover:border-primary transition-colors"
+            >
+              {s.icon}
+            </a>
           ))}
-        </ResponsiveGridLayout>
-      </main>
+        </div>
+
+        <span className="text-xs text-text-muted sm:justify-self-end">
+          © {new Date().getFullYear()} Lani. All rights reserved.
+        </span>
+      </footer>
+      </div>
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        palette={palette}
+        mode={mode}
+        onPaletteChange={setPalette}
+        onModeChange={setMode}
+        fontPrefs={fontPrefs}
+        onFontPrefsChange={setFontPrefs}
+        onResetLayout={resetLayout}
+        widgets={Object.entries(widgetMap).map(([key, m]) => ({ key, label: m.label, icon: m.icon }))}
+        activeWidgets={activeWidgets}
+        onToggleWidget={(key, enabled) => (enabled ? addWidget(key) : removeWidget(key))}
+      />
     </div>
   );
 }

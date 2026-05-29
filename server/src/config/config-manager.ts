@@ -6,7 +6,8 @@ const CONFIG_PATH = join(process.cwd(), 'data', 'config.json');
 
 const DEFAULT_CONFIG: DashboardConfig = {
   widgets: [],
-  theme: 'dark',
+  palette: 'default',
+  mode: 'dark',
   refreshInterval: 5000,
   connections: [],
   aiProviders: [],
