@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FaDesktop, FaArrowDown, FaArrowUp } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { useApi } from '../../hooks/useApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
@@ -49,7 +50,7 @@ export function SystemMonitor() {
 
   if (!stats) {
     return (
-      <WidgetCard title="System" icon="🖥️" status="loading">
+      <WidgetCard title="System" icon={<FaDesktop />} status="loading">
         <div className="text-text-muted text-sm">Loading...</div>
       </WidgetCard>
     );
@@ -60,7 +61,7 @@ export function SystemMonitor() {
   return (
     <WidgetCard
       title="System Monitor"
-      icon="🖥️"
+      icon={<FaDesktop />}
       status="online"
       actions={
         <button
@@ -129,8 +130,9 @@ export function SystemMonitor() {
               {stats.network.interfaces.map((iface) => (
                 <div key={iface.name} className="flex justify-between text-xs font-mono">
                   <span className="text-text-muted">{iface.name}</span>
-                  <span className="text-text">
-                    ↓{formatBytes(iface.rxSpeed)}/s ↑{formatBytes(iface.txSpeed)}/s
+                  <span className="text-text inline-flex items-center gap-1">
+                    <FaArrowDown size={9} />{formatBytes(iface.rxSpeed)}/s
+                    <FaArrowUp size={9} className="ml-1" />{formatBytes(iface.txSpeed)}/s
                   </span>
                 </div>
               ))}

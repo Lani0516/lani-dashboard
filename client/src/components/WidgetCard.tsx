@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 interface WidgetCardProps {
   title: string;
-  icon?: string;
+  icon?: ReactNode;
   status?: 'online' | 'offline' | 'loading' | 'error';
   children: ReactNode;
   actions?: ReactNode;
@@ -20,7 +20,7 @@ export function WidgetCard({ title, icon, status, children, actions }: WidgetCar
     <div className="bg-bg-card border border-border rounded-xl p-4 h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          {icon && <span className="text-lg">{icon}</span>}
+          {icon && <span className="text-base text-text-secondary flex items-center">{icon}</span>}
           <h3 className="text-sm font-semibold text-text">{title}</h3>
           {status && (
             <span className={`w-2 h-2 rounded-full ${statusColor}`} />

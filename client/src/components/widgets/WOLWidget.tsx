@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaBolt, FaCheck } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { api } from '../../services/api';
 import type { WOLDevice } from '@shared/types/index.js';
@@ -44,7 +45,7 @@ export function WOLWidget() {
   return (
     <WidgetCard
       title="Wake on LAN"
-      icon="⚡"
+      icon={<FaBolt />}
       actions={
         <button
           onClick={() => setShowAdd(!showAdd)}
@@ -109,7 +110,11 @@ export function WOLWidget() {
                       : 'bg-primary text-white hover:opacity-90'
                   }`}
                 >
-                  {waking === device.id ? '✓ Sent' : 'Wake'}
+                  {waking === device.id ? (
+                    <span className="inline-flex items-center gap-1"><FaCheck size={10} /> Sent</span>
+                  ) : (
+                    'Wake'
+                  )}
                 </button>
                 <button
                   onClick={() => handleRemove(device.id)}

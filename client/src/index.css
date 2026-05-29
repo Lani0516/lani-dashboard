@@ -45,3 +45,26 @@ body {
 .react-grid-item > .react-resizable-handle::after {
   border-color: var(--color-text-muted) !important;
 }
+
+.react-grid-item * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.react-grid-item *::-webkit-scrollbar {
+  display: none;
+}
+
+.layout:not(.edit-mode) .react-resizable-handle {
+  display: none;
+}
+
+.layout.edit-mode .react-grid-item {
+  cursor: move;
+}
+
+.layout.edit-mode .react-grid-item > div {
+  outline: 1px dashed var(--color-primary);
+  outline-offset: -2px;
+  border-radius: 0.75rem;
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaCubes, FaArrowsRotate } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { useApi } from '../../hooks/useApi';
 import type { MinecraftServerStatus } from '@shared/types/index.js';
@@ -13,14 +14,14 @@ export function MinecraftWidget() {
   return (
     <WidgetCard
       title="Minecraft"
-      icon="⛏️"
+      icon={<FaCubes />}
       status={loading ? 'loading' : status?.online ? 'online' : 'offline'}
       actions={
         <button
           onClick={refetch}
-          className="text-xs text-text-muted hover:text-text px-2 py-1 rounded bg-bg-hover"
+          className="text-text-muted hover:text-text px-2 py-1 rounded bg-bg-hover flex items-center"
         >
-          ↻
+          <FaArrowsRotate size={12} />
         </button>
       }
     >

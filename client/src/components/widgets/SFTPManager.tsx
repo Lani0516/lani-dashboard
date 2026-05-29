@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaFolder, FaFolderOpen, FaFile, FaArrowUp } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { api } from '../../services/api';
 import { useApi } from '../../hooks/useApi';
@@ -105,7 +106,7 @@ export function SFTPManager() {
   return (
     <WidgetCard
       title="SFTP Manager"
-      icon="📁"
+      icon={<FaFolder />}
       status={activeConn ? 'online' : 'offline'}
       actions={
         <div className="flex gap-1">
@@ -176,7 +177,7 @@ export function SFTPManager() {
       ) : (
         <div className="space-y-1">
           <div className="flex items-center gap-2 mb-2">
-            <button onClick={handleGoUp} className="text-xs bg-bg-hover px-2 py-0.5 rounded text-text-muted hover:text-text">↑ Up</button>
+            <button onClick={handleGoUp} className="text-xs bg-bg-hover px-2 py-0.5 rounded text-text-muted hover:text-text inline-flex items-center gap-1"><FaArrowUp size={9} /> Up</button>
             <span className="text-xs text-text-muted font-mono truncate">{currentPath}</span>
           </div>
           {loading && <div className="text-text-muted text-xs">Loading...</div>}
@@ -187,7 +188,7 @@ export function SFTPManager() {
               className="w-full flex items-center justify-between bg-bg-hover rounded px-2 py-1.5 text-xs hover:bg-border transition-colors"
             >
               <div className="flex items-center gap-1.5">
-                <span>{file.type === 'directory' ? '📂' : '📄'}</span>
+                <span className="flex items-center text-text-secondary">{file.type === 'directory' ? <FaFolderOpen size={12} /> : <FaFile size={12} />}</span>
                 <span className="text-text">{file.name}</span>
               </div>
               <span className="text-text-muted text-[10px]">

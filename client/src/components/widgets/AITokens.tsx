@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaRobot } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../services/api';
@@ -35,7 +36,7 @@ export function AITokens() {
   return (
     <WidgetCard
       title="AI Tokens"
-      icon="🤖"
+      icon={<FaRobot />}
       status={loading ? 'loading' : 'online'}
       actions={
         <button

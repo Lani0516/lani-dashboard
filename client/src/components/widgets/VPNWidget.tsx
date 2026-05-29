@@ -1,3 +1,4 @@
+import { FaLock } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { useApi } from '../../hooks/useApi';
 import type { VPNStatus } from '@shared/types/index.js';
@@ -6,7 +7,7 @@ export function VPNWidget() {
   const { data: status } = useApi<VPNStatus>('/vpn/status', 10000);
 
   return (
-    <WidgetCard title="VPN" icon="🔒" status={status?.connected ? 'online' : 'offline'}>
+    <WidgetCard title="VPN" icon={<FaLock />} status={status?.connected ? 'online' : 'offline'}>
       <div className="space-y-3">
         <div className={`text-center py-3 rounded-lg ${status?.connected ? 'bg-success/10' : 'bg-bg-hover'}`}>
           <div className={`text-sm font-bold ${status?.connected ? 'text-success' : 'text-text-muted'}`}>
