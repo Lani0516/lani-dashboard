@@ -14,7 +14,12 @@ import { SFTPManager } from './components/widgets/SFTPManager';
 import { ClockWidget } from './components/widgets/ClockWidget';
 import { NetworkWidget } from './components/widgets/NetworkWidget';
 import { AdblockWidget } from './components/widgets/AdblockWidget';
-import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode, FaShieldHalved, FaGlobe } from 'react-icons/fa6';
+import { DockerWidget } from './components/widgets/DockerWidget';
+import { UptimeWidget } from './components/widgets/UptimeWidget';
+import { DiskWidget } from './components/widgets/DiskWidget';
+import { ProcessWidget } from './components/widgets/ProcessWidget';
+import { SensorsWidget } from './components/widgets/SensorsWidget';
+import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode, FaShieldHalved, FaGlobe, FaDocker, FaHeartPulse, FaHardDrive, FaMicrochip, FaTemperatureHalf } from 'react-icons/fa6';
 import { applyTheme } from './themes/themes';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -53,6 +58,11 @@ const defaultLayouts = {
     { i: 'clock', x: 0, y: 16, w: 5, h: 3 },
     { i: 'network', x: 5, y: 16, w: 5, h: 4 },
     { i: 'adblock', x: 0, y: 19, w: 5, h: 5 },
+    { i: 'docker', x: 5, y: 19, w: 5, h: 6 },
+    { i: 'uptime', x: 0, y: 24, w: 4, h: 5 },
+    { i: 'disk', x: 4, y: 24, w: 4, h: 5 },
+    { i: 'process', x: 8, y: 24, w: 4, h: 6 },
+    { i: 'sensors', x: 0, y: 29, w: 4, h: 5 },
   ],
   sm: [
     { i: 'system', x: 0, y: 0, w: 6, h: 4 },
@@ -65,6 +75,11 @@ const defaultLayouts = {
     { i: 'clock', x: 0, y: 27, w: 6, h: 3 },
     { i: 'network', x: 0, y: 30, w: 6, h: 4 },
     { i: 'adblock', x: 0, y: 34, w: 6, h: 5 },
+    { i: 'docker', x: 0, y: 39, w: 6, h: 6 },
+    { i: 'uptime', x: 0, y: 45, w: 6, h: 5 },
+    { i: 'disk', x: 0, y: 50, w: 6, h: 5 },
+    { i: 'process', x: 0, y: 55, w: 6, h: 6 },
+    { i: 'sensors', x: 0, y: 61, w: 6, h: 5 },
   ],
 };
 
@@ -85,6 +100,11 @@ const widgetMap: Record<string, WidgetMeta> = {
   clock: { label: 'Clock', icon: <FaRegClock />, render: () => <ClockWidget /> },
   network: { label: 'Network', icon: <FaNetworkWired />, render: () => <NetworkWidget /> },
   adblock: { label: 'Ad Block', icon: <FaShieldHalved />, render: () => <AdblockWidget /> },
+  docker: { label: 'Docker', icon: <FaDocker />, render: () => <DockerWidget /> },
+  uptime: { label: 'Uptime', icon: <FaHeartPulse />, render: () => <UptimeWidget /> },
+  disk: { label: 'Disk / Storage', icon: <FaHardDrive />, render: () => <DiskWidget /> },
+  process: { label: 'Processes', icon: <FaMicrochip />, render: () => <ProcessWidget /> },
+  sensors: { label: 'Sensors', icon: <FaTemperatureHalf />, render: () => <SensorsWidget /> },
 };
 
 const socialLinks = [

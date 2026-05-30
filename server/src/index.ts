@@ -14,6 +14,12 @@ import { wolRouter } from './modules/wol/router.js';
 import { filesRouter } from './modules/files/router.js';
 import { adblockRouter } from './modules/adblock/router.js';
 import { sitesRouter } from './modules/sites/router.js';
+import { dockerRouter } from './modules/docker/router.js';
+import { uptimeRouter } from './modules/uptime/router.js';
+import { startUptimeMonitor } from './modules/uptime/service.js';
+import { diskRouter } from './modules/disk/router.js';
+import { processRouter } from './modules/process/router.js';
+import { sensorsRouter } from './modules/sensors/router.js';
 import { configRouter } from './config/router.js';
 import { startPolling } from './polling.js';
 import { authMiddleware, authStatus, verifyWsUpgrade } from './auth.js';
@@ -46,6 +52,11 @@ app.use('/api/wol', wolRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/adblock', adblockRouter);
 app.use('/api/sites', sitesRouter);
+app.use('/api/docker', dockerRouter);
+app.use('/api/uptime', uptimeRouter);
+app.use('/api/disk', diskRouter);
+app.use('/api/process', processRouter);
+app.use('/api/sensors', sensorsRouter);
 app.use('/api/config', configRouter);
 
 // Two WS endpoints sharing one HTTP server, routed by path on upgrade.
@@ -82,6 +93,7 @@ const PORT = process.env.PORT || 3001;
 
 await configManager.load();
 startPolling(wss);
+startUptimeMonitor();
 
 server.listen(PORT, () => {
   console.log(`Dashboard server running on :${PORT}`);

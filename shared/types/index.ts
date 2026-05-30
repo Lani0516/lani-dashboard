@@ -18,7 +18,12 @@ export type WidgetType =
   | 'wol'
   | 'network'
   | 'sftp'
-  | 'adblock';
+  | 'adblock'
+  | 'docker'
+  | 'uptime'
+  | 'disk'
+  | 'process'
+  | 'sensors';
 
 // ── Adblock (Pi-hole) ──
 
@@ -30,6 +35,163 @@ export interface AdblockStats {
   blockPercent: number;
   domainsOnBlocklist: number;
   blockingEnabled: boolean;
+}
+
+// ── Docker ──
+
+export interface DockerContainer {
+  id: string;
+  name: string;
+  image: string;
+  state: string;
+  status: string;
+  cpuPercent: number;
+  memUsage: number;
+  memLimit: number;
+}
+
+export interface DockerStatus {
+  available: boolean;
+  error?: string;
+  containers: DockerContainer[];
+}
+
+export interface DockerImage {
+  id: string;
+  tag: string;
+  tags: string[];
+  size: number;
+}
+
+export interface DockerVolume {
+  name: string;
+  mountpoint: string;
+  driver: string;
+}
+
+// ── Uptime ──
+
+export interface UptimeTarget {
+  id: string;
+  label: string;
+  type: 'http' | 'tcp' | 'ping';
+  target: string;
+  expectedStatus?: number;
+}
+
+export interface UptimeProbeResult {
+  timestamp: number;
+  up: boolean;
+  latencyMs: number;
+  error?: string;
+}
+
+export interface UptimeStatus extends UptimeTarget {
+  up: boolean;
+  latencyMs: number | null;
+  lastError?: string;
+  uptimePercent: number;
+  history: UptimeProbeResult[];
+}
+
+// ── Disk / Storage ──
+
+export interface DiskMount {
+  mount: string;
+  fsType?: string;
+  totalBytes: number;
+  usedBytes: number;
+  availBytes: number;
+  usePercent: number;
+  inodesTotal?: number;
+  inodesUsed?: number;
+  inodesPercent?: number;
+}
+
+export interface DiskSmartDevice {
+  device: string;
+  healthPassed: boolean;
+  tempC?: number;
+  powerOnHours?: number;
+}
+
+export interface DiskSmart {
+  available: boolean;
+  devices?: DiskSmartDevice[];
+}
+
+export interface DiskIo {
+  device: string;
+  readBps: number;
+  writeBps: number;
+}
+
+export interface DiskStats {
+  mounts: DiskMount[];
+  smart: DiskSmart;
+  io: DiskIo[];
+  timestamp: number;
+}
+
+// ── Processes ──
+
+export interface ProcessInfo {
+  pid: number;
+  ppid: number;
+  name: string;
+  cpu: number;
+  memPercent: number;
+  rssBytes: number;
+  user: string;
+}
+
+export interface ProcessList {
+  processes: ProcessInfo[];
+  total: number;
+  sort: 'cpu' | 'mem';
+  timestamp: number;
+}
+
+export interface KillResult {
+  ok: boolean;
+  pid: number;
+  signal: 'SIGTERM' | 'SIGKILL';
+  error?: string;
+}
+
+// ── Sensors ──
+
+export interface CpuTemp {
+  zone: string;
+  type: string;
+  value: number;
+}
+
+export interface HwmonReading {
+  chip: string;
+  label: string;
+  type: 'temp' | 'fan';
+  value: number;
+  unit: '°C' | 'RPM';
+}
+
+export interface ThrottleStatus {
+  available: boolean;
+  raw?: string;
+  underVoltageNow?: boolean;
+  freqCappedNow?: boolean;
+  throttledNow?: boolean;
+  softTempLimitNow?: boolean;
+  underVoltageOccurred?: boolean;
+  freqCappedOccurred?: boolean;
+  throttledOccurred?: boolean;
+  softTempLimitOccurred?: boolean;
+}
+
+export interface SensorsStats {
+  cpuTemps: CpuTemp[];
+  hwmon: HwmonReading[];
+  throttle: ThrottleStatus;
 }
 
 // ── System Monitor ──
