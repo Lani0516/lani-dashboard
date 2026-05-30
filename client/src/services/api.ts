@@ -1,4 +1,4 @@
-import type { ApiResponse, DashboardConfig, AIProvider, SFTPConnection, WidgetConfig, FileEntry } from '@shared/types/index.js';
+import type { ApiResponse, ArchiveFormat, DashboardConfig, AIProvider, SFTPConnection, WidgetConfig, FileEntry, LocalSite, NginxDeployRequest, NginxDeployResult } from '@shared/types/index.js';
 
 const TOKEN_KEY = 'dashboard-token';
 
@@ -39,8 +39,18 @@ export const api = {
       request<void>('/files/mkdir', { method: 'POST', body: JSON.stringify({ path }) }),
     delete: (path: string) =>
       request<void>(`/files/delete?path=${encodeURIComponent(path)}`, { method: 'DELETE' }),
+    deleteBatch: (paths: string[]) =>
+      request<void>('/files/delete-batch', { method: 'POST', body: JSON.stringify({ paths }) }),
     rename: (from: string, to: string) =>
       request<void>('/files/rename', { method: 'POST', body: JSON.stringify({ from, to }) }),
+    copy: (paths: string[], destDir: string) =>
+      request<void>('/files/copy', { method: 'POST', body: JSON.stringify({ paths, destDir }) }),
+    move: (paths: string[], destDir: string) =>
+      request<void>('/files/move', { method: 'POST', body: JSON.stringify({ paths, destDir }) }),
+    archive: (paths: string[], destPath: string, format: ArchiveFormat) =>
+      request<{ path: string }>('/files/archive', { method: 'POST', body: JSON.stringify({ paths, destPath, format }) }),
+    extract: (archivePath: string, destDir: string) =>
+      request<void>('/files/extract', { method: 'POST', body: JSON.stringify({ archivePath, destDir }) }),
     async download(path: string, name: string) {
       const res = await fetch(`/api/files/download?path=${encodeURIComponent(path)}`, {
         headers: authHeaders(),
@@ -77,6 +87,11 @@ export const api = {
       request<void>(`/config/connections/${id}`, { method: 'DELETE' }),
     updateWidgets: (widgets: WidgetConfig[]) =>
       request<WidgetConfig[]>('/config/widgets', { method: 'PUT', body: JSON.stringify({ widgets }) }),
+  },
+  sites: {
+    list: () => request<LocalSite[]>('/sites/list'),
+    deployNginx: (data: NginxDeployRequest) =>
+      request<NginxDeployResult>('/sites/nginx/deploy', { method: 'POST', body: JSON.stringify(data) }),
   },
   wol: {
     wake: (mac: string, broadcastAddress?: string) =>

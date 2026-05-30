@@ -1,9 +1,18 @@
-import { FaAnglesLeft, FaAnglesRight, FaGear } from 'react-icons/fa6';
+import { useState } from 'react';
+import { FaAnglesLeft, FaAnglesRight, FaChevronRight, FaGear } from 'react-icons/fa6';
 
 export interface SidebarItem {
   key: string;
   label: string;
   icon: React.ReactNode;
+  children?: SidebarChildItem[];
+}
+
+export interface SidebarChildItem {
+  key: string;
+  label: string;
+  meta?: string;
+  href?: string;
 }
 
 interface SidebarSection {
@@ -22,6 +31,11 @@ interface SidebarProps {
 
 export function Sidebar({ sections, activeKey, onSelect, open, onToggle, onSettings }: SidebarProps) {
   const expanded = open;
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ sites: true });
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups((groups) => ({ ...groups, [key]: !groups[key] }));
+  };
 
   return (
     <aside
@@ -78,26 +92,68 @@ export function Sidebar({ sections, activeKey, onSelect, open, onToggle, onSetti
             <div className="flex flex-col gap-1">
               {section.items.map((item) => {
                 const active = item.key === activeKey;
+                const hasChildren = expanded && !!item.children?.length;
+                const groupOpen = !!openGroups[item.key];
                 return (
-                  <button
-                    key={item.key}
-                    onClick={() => onSelect?.(item.key)}
-                    title={expanded ? undefined : item.label}
-                    className={`flex items-center rounded-lg text-sm transition-colors ${
-                      expanded
-                        ? 'mx-2 px-3 py-2.5 gap-3 w-[calc(100%-1rem)]'
-                        : 'mx-auto w-10 h-10 justify-center'
-                    } ${
-                      active
-                        ? 'text-text bg-bg-hover'
-                        : 'text-text-secondary hover:text-text hover:bg-bg-hover'
-                    }`}
-                  >
-                    <span className="w-5 flex items-center justify-center shrink-0">{item.icon}</span>
-                    {expanded && (
-                      <span className="whitespace-nowrap overflow-hidden">{item.label}</span>
+                  <div key={item.key}>
+                    <button
+                      onClick={() => {
+                        if (hasChildren) toggleGroup(item.key);
+                        onSelect?.(item.key);
+                      }}
+                      title={expanded ? undefined : item.label}
+                      className={`flex items-center rounded-lg text-sm transition-colors ${
+                        expanded
+                          ? 'mx-2 px-3 py-2.5 gap-3 w-[calc(100%-1rem)]'
+                          : 'mx-auto w-10 h-10 justify-center'
+                      } ${
+                        active
+                          ? 'text-text bg-bg-hover'
+                          : 'text-text-secondary hover:text-text hover:bg-bg-hover'
+                      }`}
+                    >
+                      <span className="w-5 flex items-center justify-center shrink-0">{item.icon}</span>
+                      {expanded && (
+                        <>
+                          <span className="whitespace-nowrap overflow-hidden flex-1 text-left">{item.label}</span>
+                          {hasChildren && (
+                            <FaChevronRight
+                              size={10}
+                              className={`shrink-0 text-text-muted transition-transform duration-200 ease-out ${
+                                groupOpen ? 'rotate-90' : 'rotate-180'
+                              }`}
+                            />
+                          )}
+                        </>
+                      )}
+                    </button>
+
+                    {hasChildren && (
+                      <div
+                        className={`ml-9 mr-2 overflow-hidden border-l border-border pl-2 transition-[max-height,opacity,transform,margin] duration-200 ease-out ${
+                          groupOpen
+                            ? 'mt-1 mb-1 max-h-64 translate-y-0 opacity-100'
+                            : 'mt-0 mb-0 max-h-0 -translate-y-1 opacity-0'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-0.5 py-0.5">
+                        {item.children!.map((child) => (
+                          <button
+                            key={child.key}
+                            onClick={() => child.href && window.open(child.href, '_blank', 'noopener,noreferrer')}
+                            className="min-w-0 rounded-md px-2 py-1.5 text-left text-xs text-text-secondary hover:bg-bg-hover hover:text-text transition-colors"
+                            title={child.meta ? `${child.label} ${child.meta}` : child.label}
+                          >
+                            <div className="truncate font-mono text-text">:{child.label}</div>
+                            {child.meta && (
+                              <div className="truncate text-[10px] text-text-muted">{child.meta}</div>
+                            )}
+                          </button>
+                        ))}
+                        </div>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>

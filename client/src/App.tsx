@@ -13,19 +13,21 @@ import { WOLWidget } from './components/widgets/WOLWidget';
 import { SFTPManager } from './components/widgets/SFTPManager';
 import { ClockWidget } from './components/widgets/ClockWidget';
 import { NetworkWidget } from './components/widgets/NetworkWidget';
-import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode } from 'react-icons/fa6';
+import { AdblockWidget } from './components/widgets/AdblockWidget';
+import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode, FaShieldHalved, FaGlobe } from 'react-icons/fa6';
 import { applyTheme } from './themes/themes';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { Workspace } from './components/workspace/Workspace';
+import { Sites } from './components/Sites';
 import { Login } from './components/Login';
 import { api, getToken } from './services/api';
 import { applyFontPrefs, DEFAULT_FONT_PREFS, type FontPrefs } from './fonts';
-import type { ThemePalette, ThemeMode } from '@shared/types/index.js';
+import type { LocalSite, ThemePalette, ThemeMode } from '@shared/types/index.js';
 
-type View = 'dashboard' | 'workspace';
+type View = 'dashboard' | 'workspace' | 'sites';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -40,8 +42,7 @@ const defaultLayouts = {
     { i: 'sftp', x: 0, y: 7, w: 6, h: 5 },
     { i: 'clock', x: 6, y: 7, w: 4, h: 3 },
     { i: 'network', x: 6, y: 10, w: 4, h: 4 },
-  ],
-  md: [
+    { i: 'adblock', x: 10, y: 7, w: 4, h: 5 },
     { i: 'system', x: 0, y: 0, w: 5, h: 4 },
     { i: 'ai-tokens', x: 5, y: 0, w: 5, h: 4 },
     { i: 'discord', x: 0, y: 4, w: 5, h: 4 },
@@ -51,6 +52,7 @@ const defaultLayouts = {
     { i: 'sftp', x: 0, y: 11, w: 10, h: 5 },
     { i: 'clock', x: 0, y: 16, w: 5, h: 3 },
     { i: 'network', x: 5, y: 16, w: 5, h: 4 },
+    { i: 'adblock', x: 0, y: 19, w: 5, h: 5 },
   ],
   sm: [
     { i: 'system', x: 0, y: 0, w: 6, h: 4 },
@@ -62,6 +64,7 @@ const defaultLayouts = {
     { i: 'sftp', x: 0, y: 22, w: 6, h: 5 },
     { i: 'clock', x: 0, y: 27, w: 6, h: 3 },
     { i: 'network', x: 0, y: 30, w: 6, h: 4 },
+    { i: 'adblock', x: 0, y: 34, w: 6, h: 5 },
   ],
 };
 
@@ -81,6 +84,7 @@ const widgetMap: Record<string, WidgetMeta> = {
   sftp: { label: 'SFTP Manager', icon: <FaFolder />, render: () => <SFTPManager /> },
   clock: { label: 'Clock', icon: <FaRegClock />, render: () => <ClockWidget /> },
   network: { label: 'Network', icon: <FaNetworkWired />, render: () => <NetworkWidget /> },
+  adblock: { label: 'Ad Block', icon: <FaShieldHalved />, render: () => <AdblockWidget /> },
 };
 
 const socialLinks = [
@@ -109,6 +113,7 @@ export function App() {
   const [sidebarOpen, setSidebarOpen] = useLocalStorage('dashboard-sidebar-open', true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [view, setView] = useState<View>('dashboard');
+  const [localSites, setLocalSites] = useState<LocalSite[]>([]);
   const [authState, setAuthState] = useState<'checking' | 'locked' | 'ready'>('checking');
   useWebSocket();
 
@@ -131,6 +136,27 @@ export function App() {
   useEffect(() => {
     applyFontPrefs(fontPrefs);
   }, [fontPrefs]);
+
+  useEffect(() => {
+    if (authState !== 'ready') return;
+    let cancelled = false;
+    const loadSites = () => {
+      api.sites
+        .list()
+        .then((sites) => {
+          if (!cancelled) setLocalSites(sites);
+        })
+        .catch(() => {
+          if (!cancelled) setLocalSites([]);
+        });
+    };
+    loadSites();
+    const timer = window.setInterval(loadSites, 15000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [authState]);
 
   useEffect(() => {
     applyTheme(palette, mode);
@@ -193,7 +219,7 @@ export function App() {
 
   const hiddenWidgets = defaultWidgets.filter((k) => !activeWidgets.includes(k));
 
-  const pageTitle = view === 'dashboard' ? 'Dashboard' : 'Workspace';
+  const pageTitle = view === 'dashboard' ? 'Dashboard' : view === 'workspace' ? 'Workspace' : 'Local Sites';
 
   const sidebarSections = [
     {
@@ -201,6 +227,17 @@ export function App() {
       items: [
         { key: 'dashboard', label: 'Dashboard', icon: <FaGaugeHigh /> },
         { key: 'workspace', label: 'Workspace', icon: <FaCode /> },
+        {
+          key: 'sites',
+          label: 'Local Sites',
+          icon: <FaGlobe />,
+          children: localSites.map((site) => ({
+            key: `site-${site.port}`,
+            label: String(site.port),
+            meta: site.title || site.process || 'HTTP 200',
+            href: `http://${window.location.hostname}:${site.port}`,
+          })),
+        },
       ],
     },
   ];
@@ -292,6 +329,10 @@ export function App() {
       {view === 'workspace' ? (
         <main className="flex-1 min-h-0">
           <Workspace />
+        </main>
+      ) : view === 'sites' ? (
+        <main className="flex-1">
+          <Sites />
         </main>
       ) : (
         <main className="p-4 flex-1">

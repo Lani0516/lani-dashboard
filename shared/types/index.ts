@@ -17,7 +17,20 @@ export type WidgetType =
   | 'vpn'
   | 'wol'
   | 'network'
-  | 'sftp';
+  | 'sftp'
+  | 'adblock';
+
+// ── Adblock (Pi-hole) ──
+
+export interface AdblockStats {
+  online: boolean;
+  version: 'v5' | 'v6';
+  queriesToday: number;
+  blockedToday: number;
+  blockPercent: number;
+  domainsOnBlocklist: number;
+  blockingEnabled: boolean;
+}
 
 // ── System Monitor ──
 
@@ -129,6 +142,26 @@ export interface FileEntry {
   permissions: string;
 }
 
+export type ArchiveFormat = 'zip' | 'tar.gz' | '7z';
+
+export interface FileBatchRequest {
+  paths: string[];
+}
+
+export interface FileCopyMoveRequest extends FileBatchRequest {
+  destDir: string;
+}
+
+export interface FileArchiveRequest extends FileBatchRequest {
+  destPath: string;
+  format: ArchiveFormat;
+}
+
+export interface FileExtractRequest {
+  archivePath: string;
+  destDir: string;
+}
+
 // ── VPN (placeholder) ──
 
 export interface VPNStatus {
@@ -156,6 +189,38 @@ export interface WOLDevice {
   ip?: string;
   broadcastAddress?: string;
   lastWoken?: number;
+}
+
+// ── Local Sites (listening ports) ──
+
+export interface LocalSite {
+  port: number;
+  address: string;
+  process?: string;
+  pid?: number;
+  proto: 'http' | 'https' | 'unknown';
+  online: boolean;
+  statusCode?: number;
+  title?: string;
+}
+
+export interface NginxDeployRequest {
+  name: string;
+  serverName: string;
+  listenPort: number;
+  mode: 'proxy' | 'static';
+  upstreamPort?: number;
+  root?: string;
+}
+
+export interface NginxDeployResult {
+  configPath: string;
+  enabledPath?: string;
+  root?: string;
+  tested: boolean;
+  reloaded: boolean;
+  warnings: string[];
+  url: string;
 }
 
 // ── Theme ──

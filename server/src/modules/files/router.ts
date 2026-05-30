@@ -8,8 +8,13 @@ import {
   writeFileText,
   makeDir,
   removePath,
+  removePaths,
   renamePath,
   safePath,
+  copyPaths,
+  movePaths,
+  createArchive,
+  extractArchive,
 } from './service.js';
 
 export const filesRouter = Router();
@@ -62,6 +67,54 @@ filesRouter.post('/mkdir', async (req, res) => {
 filesRouter.delete('/delete', async (req, res) => {
   try {
     await removePath(req.query.path as string);
+    res.json(ok(null));
+  } catch (e) {
+    res.status(400).json(fail(e));
+  }
+});
+
+filesRouter.post('/delete-batch', async (req, res) => {
+  try {
+    await removePaths(req.body?.paths);
+    res.json(ok(null));
+  } catch (e) {
+    res.status(400).json(fail(e));
+  }
+});
+
+filesRouter.post('/copy', async (req, res) => {
+  try {
+    const { paths, destDir } = req.body;
+    await copyPaths(paths, destDir);
+    res.json(ok(null));
+  } catch (e) {
+    res.status(400).json(fail(e));
+  }
+});
+
+filesRouter.post('/move', async (req, res) => {
+  try {
+    const { paths, destDir } = req.body;
+    await movePaths(paths, destDir);
+    res.json(ok(null));
+  } catch (e) {
+    res.status(400).json(fail(e));
+  }
+});
+
+filesRouter.post('/archive', async (req, res) => {
+  try {
+    const { paths, destPath, format } = req.body;
+    res.json(ok({ path: await createArchive(paths, destPath, format) }));
+  } catch (e) {
+    res.status(400).json(fail(e));
+  }
+});
+
+filesRouter.post('/extract', async (req, res) => {
+  try {
+    const { archivePath, destDir } = req.body;
+    await extractArchive(archivePath, destDir);
     res.json(ok(null));
   } catch (e) {
     res.status(400).json(fail(e));

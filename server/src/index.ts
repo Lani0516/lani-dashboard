@@ -12,6 +12,8 @@ import { sftpRouter } from './modules/minecraft/sftp-router.js';
 import { vpnRouter } from './modules/vpn/router.js';
 import { wolRouter } from './modules/wol/router.js';
 import { filesRouter } from './modules/files/router.js';
+import { adblockRouter } from './modules/adblock/router.js';
+import { sitesRouter } from './modules/sites/router.js';
 import { configRouter } from './config/router.js';
 import { startPolling } from './polling.js';
 import { authMiddleware, authStatus, verifyWsUpgrade } from './auth.js';
@@ -42,6 +44,8 @@ app.use('/api/sftp', sftpRouter);
 app.use('/api/vpn', vpnRouter);
 app.use('/api/wol', wolRouter);
 app.use('/api/files', filesRouter);
+app.use('/api/adblock', adblockRouter);
+app.use('/api/sites', sitesRouter);
 app.use('/api/config', configRouter);
 
 // Two WS endpoints sharing one HTTP server, routed by path on upgrade.
