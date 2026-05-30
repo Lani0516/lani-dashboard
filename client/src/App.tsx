@@ -27,16 +27,37 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { Workspace } from './components/workspace/Workspace';
 import { Sites } from './components/Sites';
+import { DockerTool } from './components/tools/DockerTool';
+import { UptimeTool } from './components/tools/UptimeTool';
+import { DiskTool } from './components/tools/DiskTool';
+import { ProcessTool } from './components/tools/ProcessTool';
+import { SensorsTool } from './components/tools/SensorsTool';
 import { Login } from './components/Login';
 import { api, getToken } from './services/api';
 import { applyFontPrefs, DEFAULT_FONT_PREFS, type FontPrefs } from './fonts';
 import type { LocalSite, ThemePalette, ThemeMode } from '@shared/types/index.js';
 
-const toolKeys = ['docker', 'uptime', 'disk', 'process', 'sensors'] as const;
-type ToolKey = (typeof toolKeys)[number];
 type View = 'dashboard' | 'workspace' | 'sites' | ToolKey;
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
+
+interface ToolMeta {
+  label: string;
+  icon: React.ReactNode;
+  render: () => React.JSX.Element;
+}
+
+const toolPages = {
+  docker: { label: 'Docker', icon: <FaDocker />, render: () => <DockerTool /> },
+  uptime: { label: 'Uptime', icon: <FaHeartPulse />, render: () => <UptimeTool /> },
+  disk: { label: 'Disk / Storage', icon: <FaHardDrive />, render: () => <DiskTool /> },
+  process: { label: 'Processes', icon: <FaMicrochip />, render: () => <ProcessTool /> },
+  sensors: { label: 'Sensors', icon: <FaTemperatureHalf />, render: () => <SensorsTool /> },
+} satisfies Record<string, ToolMeta>;
+
+type ToolKey = keyof typeof toolPages;
+
+const isToolKey = (v: string): v is ToolKey => v in toolPages;
 
 const defaultLayouts = {
   lg: [
@@ -241,14 +262,13 @@ export function App() {
 
   const hiddenWidgets = defaultWidgets.filter((k) => !activeWidgets.includes(k));
 
-  const pageTitle =
-    view === 'dashboard'
-      ? 'Dashboard'
-      : view === 'workspace'
-        ? 'Workspace'
-        : view === 'sites'
-          ? 'Local Sites'
-          : widgetMap[view]?.label ?? 'Dashboard';
+  const pageTitle = isToolKey(view)
+    ? toolPages[view].label
+    : view === 'dashboard'
+    ? 'Dashboard'
+    : view === 'workspace'
+    ? 'Workspace'
+    : 'Local Sites';
 
   const sidebarSections = [
     {
@@ -271,10 +291,10 @@ export function App() {
     },
     {
       title: 'Tools',
-      items: toolKeys.map((key) => ({
+      items: (Object.keys(toolPages) as ToolKey[]).map((key) => ({
         key,
-        label: widgetMap[key].label,
-        icon: widgetMap[key].icon,
+        label: toolPages[key].label,
+        icon: toolPages[key].icon,
       })),
     },
   ];
@@ -287,7 +307,7 @@ export function App() {
   }
 
   return (
-    <div className={`bg-bg flex ${view === 'workspace' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`bg-bg flex ${view === 'workspace' || isToolKey(view) ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <Sidebar
         sections={sidebarSections}
         activeKey={view}
@@ -363,19 +383,17 @@ export function App() {
         </div>
       )}
 
-      {view === 'workspace' ? (
+      {isToolKey(view) ? (
+        <main className="flex-1 min-h-0">
+          {toolPages[view].render()}
+        </main>
+      ) : view === 'workspace' ? (
         <main className="flex-1 min-h-0">
           <Workspace />
         </main>
       ) : view === 'sites' ? (
         <main className="flex-1">
           <Sites />
-        </main>
-      ) : view in widgetMap ? (
-        <main className="p-4 flex-1">
-          <div className="max-w-3xl mx-auto h-[calc(100vh-8rem)]">
-            {widgetMap[view].render()}
-          </div>
         </main>
       ) : (
         <main className="p-4 flex-1">

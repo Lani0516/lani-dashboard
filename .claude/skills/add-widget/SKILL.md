@@ -102,5 +102,11 @@ If the feature stores server-side config (API keys, connection lists), extend `D
 ## Step 9 — Verify
 `cd client && npx tsc --noEmit`. Confirm no type errors. Tell user to add the widget via dashboard Edit mode (it shows under "Add:" if not in defaults). Do not launch dev server.
 
+## Full-page tool view (optional, richer than a widget)
+A feature can also get a dedicated sidebar view (a full page, like Dashboard/Workspace/Sites), in addition to or instead of its grid widget. Pattern in `client/src/App.tsx`:
+- Build the page component at `client/src/components/tools/<Name>Tool.tsx`, root `<div className="p-6 space-y-6 h-full overflow-auto">`, reusing the same `/api/<module>` endpoints.
+- Register it in the `toolPages` object (key, label, icon, render) near `widgetMap`. `ToolKey`, `isToolKey`, the `View` union, `pageTitle`, the sidebar "Tools" section, and the render switch are all driven off `toolPages` — adding one entry there wires the whole view. No other App.tsx edits needed beyond importing the component.
+- Tool views render inside `h-screen overflow-hidden` (the page itself scrolls via the tool root's `overflow-auto`); the dashboard Edit button is hidden on non-dashboard views automatically.
+
 ## Universality note
 This dashboard targets everything from Raspberry Pi to OCI VPS. For modules reading host data, **feature-detect** (check a binary exists / file readable) and degrade gracefully — return `online:false` or an informative error rather than throwing on a host that lacks `docker`/`smartctl`/`vcgencmd`. Keep base modules dependent only on `/proc` + standard tools so a Pi Zero still runs them.
