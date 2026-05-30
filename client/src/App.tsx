@@ -272,7 +272,7 @@ export function App() {
 
   const sidebarSections = [
     {
-      title: 'Views',
+      title: '',
       items: [
         { key: 'dashboard', label: 'Dashboard', icon: <FaGaugeHigh /> },
         { key: 'workspace', label: 'Workspace', icon: <FaCode /> },
@@ -287,15 +287,12 @@ export function App() {
             href: `http://${window.location.hostname}:${site.port}`,
           })),
         },
+        ...(Object.keys(toolPages) as ToolKey[]).map((key) => ({
+          key,
+          label: toolPages[key].label,
+          icon: toolPages[key].icon,
+        })),
       ],
-    },
-    {
-      title: 'Tools',
-      items: (Object.keys(toolPages) as ToolKey[]).map((key) => ({
-        key,
-        label: toolPages[key].label,
-        icon: toolPages[key].icon,
-      })),
     },
   ];
 

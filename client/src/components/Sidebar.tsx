@@ -82,13 +82,15 @@ export function Sidebar({ sections, activeKey, onSelect, open, onToggle, onSetti
       <nav className="flex-1 overflow-y-auto py-2">
         {sections.map((section) => (
           <div key={section.title} className="mb-2">
-            <div
-              className={`px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap overflow-hidden transition-opacity duration-150 ${
-                expanded ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              {section.title}
-            </div>
+            {section.title && (
+              <div
+                className={`px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap overflow-hidden transition-opacity duration-150 ${
+                  expanded ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                {section.title}
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               {section.items.map((item) => {
                 const active = item.key === activeKey;
