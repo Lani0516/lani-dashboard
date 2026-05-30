@@ -32,7 +32,9 @@ import { api, getToken } from './services/api';
 import { applyFontPrefs, DEFAULT_FONT_PREFS, type FontPrefs } from './fonts';
 import type { LocalSite, ThemePalette, ThemeMode } from '@shared/types/index.js';
 
-type View = 'dashboard' | 'workspace' | 'sites';
+const toolKeys = ['docker', 'uptime', 'disk', 'process', 'sensors'] as const;
+type ToolKey = (typeof toolKeys)[number];
+type View = 'dashboard' | 'workspace' | 'sites' | ToolKey;
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -239,7 +241,14 @@ export function App() {
 
   const hiddenWidgets = defaultWidgets.filter((k) => !activeWidgets.includes(k));
 
-  const pageTitle = view === 'dashboard' ? 'Dashboard' : view === 'workspace' ? 'Workspace' : 'Local Sites';
+  const pageTitle =
+    view === 'dashboard'
+      ? 'Dashboard'
+      : view === 'workspace'
+        ? 'Workspace'
+        : view === 'sites'
+          ? 'Local Sites'
+          : widgetMap[view]?.label ?? 'Dashboard';
 
   const sidebarSections = [
     {
@@ -259,6 +268,14 @@ export function App() {
           })),
         },
       ],
+    },
+    {
+      title: 'Tools',
+      items: toolKeys.map((key) => ({
+        key,
+        label: widgetMap[key].label,
+        icon: widgetMap[key].icon,
+      })),
     },
   ];
 
@@ -353,6 +370,12 @@ export function App() {
       ) : view === 'sites' ? (
         <main className="flex-1">
           <Sites />
+        </main>
+      ) : view in widgetMap ? (
+        <main className="p-4 flex-1">
+          <div className="max-w-3xl mx-auto h-[calc(100vh-8rem)]">
+            {widgetMap[view].render()}
+          </div>
         </main>
       ) : (
         <main className="p-4 flex-1">
