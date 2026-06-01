@@ -228,11 +228,6 @@ export function App() {
     }
   }, []);
 
-  useEffect(() => {
-    const id = setTimeout(() => window.dispatchEvent(new Event('resize')), 220);
-    return () => clearTimeout(id);
-  }, [sidebarOpen]);
-
   const handleLayoutChange = (_: any, allLayouts: any) => {
     if (!editMode) return;
     setLayouts(allLayouts);
