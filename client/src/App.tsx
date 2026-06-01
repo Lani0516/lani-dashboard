@@ -5,7 +5,6 @@ import 'react-resizable/css/styles.css';
 
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { SystemMonitor } from './components/widgets/SystemMonitor';
-import { AITokens } from './components/widgets/AITokens';
 import { DiscordWidget } from './components/widgets/DiscordWidget';
 import { MinecraftWidget } from './components/widgets/MinecraftWidget';
 import { VPNWidget } from './components/widgets/VPNWidget';
@@ -14,12 +13,7 @@ import { SFTPManager } from './components/widgets/SFTPManager';
 import { ClockWidget } from './components/widgets/ClockWidget';
 import { NetworkWidget } from './components/widgets/NetworkWidget';
 import { AdblockWidget } from './components/widgets/AdblockWidget';
-import { DockerWidget } from './components/widgets/DockerWidget';
-import { UptimeWidget } from './components/widgets/UptimeWidget';
-import { DiskWidget } from './components/widgets/DiskWidget';
-import { ProcessWidget } from './components/widgets/ProcessWidget';
-import { SensorsWidget } from './components/widgets/SensorsWidget';
-import { FaDesktop, FaRobot, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode, FaShieldHalved, FaGlobe, FaDocker, FaHeartPulse, FaHardDrive, FaMicrochip, FaTemperatureHalf } from 'react-icons/fa6';
+import { FaDesktop, FaCubes, FaLock, FaBolt, FaFolder, FaRegClock, FaNetworkWired, FaPenToSquare, FaArrowsRotate, FaXmark, FaPlus, FaDiscord, FaGithub, FaEnvelope, FaFacebook, FaInstagram, FaGaugeHigh, FaCode, FaShieldHalved, FaGlobe } from 'react-icons/fa6';
 import { applyTheme } from './themes/themes';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -27,42 +21,18 @@ import { Sidebar } from './components/Sidebar';
 import { SettingsModal } from './components/SettingsModal';
 import { Workspace } from './components/workspace/Workspace';
 import { Sites } from './components/Sites';
-import { DockerTool } from './components/tools/DockerTool';
-import { UptimeTool } from './components/tools/UptimeTool';
-import { DiskTool } from './components/tools/DiskTool';
-import { ProcessTool } from './components/tools/ProcessTool';
-import { SensorsTool } from './components/tools/SensorsTool';
 import { Login } from './components/Login';
 import { api, getToken } from './services/api';
 import { applyFontPrefs, DEFAULT_FONT_PREFS, type FontPrefs } from './fonts';
 import type { LocalSite, ThemePalette, ThemeMode } from '@shared/types/index.js';
 
-type View = 'dashboard' | 'workspace' | 'sites' | ToolKey;
+type View = 'dashboard' | 'workspace' | 'sites';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
-interface ToolMeta {
-  label: string;
-  icon: React.ReactNode;
-  render: () => React.JSX.Element;
-}
-
-const toolPages = {
-  docker: { label: 'Docker', icon: <FaDocker />, render: () => <DockerTool /> },
-  uptime: { label: 'Uptime', icon: <FaHeartPulse />, render: () => <UptimeTool /> },
-  disk: { label: 'Disk / Storage', icon: <FaHardDrive />, render: () => <DiskTool /> },
-  process: { label: 'Processes', icon: <FaMicrochip />, render: () => <ProcessTool /> },
-  sensors: { label: 'Sensors', icon: <FaTemperatureHalf />, render: () => <SensorsTool /> },
-} satisfies Record<string, ToolMeta>;
-
-type ToolKey = keyof typeof toolPages;
-
-const isToolKey = (v: string): v is ToolKey => v in toolPages;
 
 const defaultLayouts = {
   lg: [
     { i: 'system', x: 0, y: 0, w: 4, h: 4 },
-    { i: 'ai-tokens', x: 4, y: 0, w: 4, h: 4 },
     { i: 'discord', x: 8, y: 0, w: 4, h: 4 },
     { i: 'minecraft', x: 0, y: 4, w: 4, h: 4 },
     { i: 'vpn', x: 4, y: 4, w: 4, h: 3 },
@@ -71,25 +41,9 @@ const defaultLayouts = {
     { i: 'clock', x: 6, y: 7, w: 4, h: 3 },
     { i: 'network', x: 6, y: 10, w: 4, h: 4 },
     { i: 'adblock', x: 10, y: 7, w: 4, h: 5 },
-    { i: 'system', x: 0, y: 0, w: 5, h: 4 },
-    { i: 'ai-tokens', x: 5, y: 0, w: 5, h: 4 },
-    { i: 'discord', x: 0, y: 4, w: 5, h: 4 },
-    { i: 'minecraft', x: 5, y: 4, w: 5, h: 4 },
-    { i: 'vpn', x: 0, y: 8, w: 5, h: 3 },
-    { i: 'wol', x: 5, y: 8, w: 5, h: 3 },
-    { i: 'sftp', x: 0, y: 11, w: 10, h: 5 },
-    { i: 'clock', x: 0, y: 16, w: 5, h: 3 },
-    { i: 'network', x: 5, y: 16, w: 5, h: 4 },
-    { i: 'adblock', x: 0, y: 19, w: 5, h: 5 },
-    { i: 'docker', x: 5, y: 19, w: 5, h: 6 },
-    { i: 'uptime', x: 0, y: 24, w: 4, h: 5 },
-    { i: 'disk', x: 4, y: 24, w: 4, h: 5 },
-    { i: 'process', x: 8, y: 24, w: 4, h: 6 },
-    { i: 'sensors', x: 0, y: 29, w: 4, h: 5 },
   ],
   sm: [
     { i: 'system', x: 0, y: 0, w: 6, h: 4 },
-    { i: 'ai-tokens', x: 0, y: 4, w: 6, h: 4 },
     { i: 'discord', x: 0, y: 8, w: 6, h: 4 },
     { i: 'minecraft', x: 0, y: 12, w: 6, h: 4 },
     { i: 'vpn', x: 0, y: 16, w: 6, h: 3 },
@@ -98,11 +52,6 @@ const defaultLayouts = {
     { i: 'clock', x: 0, y: 27, w: 6, h: 3 },
     { i: 'network', x: 0, y: 30, w: 6, h: 4 },
     { i: 'adblock', x: 0, y: 34, w: 6, h: 5 },
-    { i: 'docker', x: 0, y: 39, w: 6, h: 6 },
-    { i: 'uptime', x: 0, y: 45, w: 6, h: 5 },
-    { i: 'disk', x: 0, y: 50, w: 6, h: 5 },
-    { i: 'process', x: 0, y: 55, w: 6, h: 6 },
-    { i: 'sensors', x: 0, y: 61, w: 6, h: 5 },
   ],
 };
 
@@ -114,7 +63,6 @@ interface WidgetMeta {
 
 const widgetMap: Record<string, WidgetMeta> = {
   system: { label: 'System Monitor', icon: <FaDesktop />, render: () => <SystemMonitor /> },
-  'ai-tokens': { label: 'AI Tokens', icon: <FaRobot />, render: () => <AITokens /> },
   discord: { label: 'Discord', icon: <FaDiscord />, render: () => <DiscordWidget /> },
   minecraft: { label: 'Minecraft', icon: <FaCubes />, render: () => <MinecraftWidget /> },
   vpn: { label: 'VPN', icon: <FaLock />, render: () => <VPNWidget /> },
@@ -123,11 +71,6 @@ const widgetMap: Record<string, WidgetMeta> = {
   clock: { label: 'Clock', icon: <FaRegClock />, render: () => <ClockWidget /> },
   network: { label: 'Network', icon: <FaNetworkWired />, render: () => <NetworkWidget /> },
   adblock: { label: 'Ad Block', icon: <FaShieldHalved />, render: () => <AdblockWidget /> },
-  docker: { label: 'Docker', icon: <FaDocker />, render: () => <DockerWidget /> },
-  uptime: { label: 'Uptime', icon: <FaHeartPulse />, render: () => <UptimeWidget /> },
-  disk: { label: 'Disk / Storage', icon: <FaHardDrive />, render: () => <DiskWidget /> },
-  process: { label: 'Processes', icon: <FaMicrochip />, render: () => <ProcessWidget /> },
-  sensors: { label: 'Sensors', icon: <FaTemperatureHalf />, render: () => <SensorsWidget /> },
 };
 
 const socialLinks = [
@@ -137,7 +80,7 @@ const socialLinks = [
   { label: 'Instagram', href: '#', icon: <FaInstagram /> },
 ];
 
-const defaultWidgets = Object.keys(widgetMap).filter((k) => k !== 'ai-tokens');
+const defaultWidgets = Object.keys(widgetMap);
 
 const sizeDefaults: Record<string, Record<string, { w: number; h: number }>> = Object.fromEntries(
   Object.entries(defaultLayouts).map(([bp, items]) => [
@@ -262,9 +205,8 @@ export function App() {
 
   const hiddenWidgets = defaultWidgets.filter((k) => !activeWidgets.includes(k));
 
-  const pageTitle = isToolKey(view)
-    ? toolPages[view].label
-    : view === 'dashboard'
+  const pageTitle =
+    view === 'dashboard'
     ? 'Dashboard'
     : view === 'workspace'
     ? 'Workspace'
@@ -287,11 +229,6 @@ export function App() {
             href: `http://${window.location.hostname}:${site.port}`,
           })),
         },
-        ...(Object.keys(toolPages) as ToolKey[]).map((key) => ({
-          key,
-          label: toolPages[key].label,
-          icon: toolPages[key].icon,
-        })),
       ],
     },
   ];
@@ -304,7 +241,7 @@ export function App() {
   }
 
   return (
-    <div className={`bg-bg flex ${view === 'workspace' || isToolKey(view) ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`bg-bg flex ${view === 'workspace' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <Sidebar
         sections={sidebarSections}
         activeKey={view}
@@ -380,11 +317,7 @@ export function App() {
         </div>
       )}
 
-      {isToolKey(view) ? (
-        <main className="flex-1 min-h-0">
-          {toolPages[view].render()}
-        </main>
-      ) : view === 'workspace' ? (
+      {view === 'workspace' ? (
         <main className="flex-1 min-h-0">
           <Workspace />
         </main>

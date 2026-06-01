@@ -5,7 +5,6 @@ import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 import { configManager } from './config/config-manager.js';
 import { systemRouter } from './modules/system/router.js';
-import { aiTokensRouter } from './modules/ai-tokens/router.js';
 import { discordRouter } from './modules/discord/router.js';
 import { minecraftRouter } from './modules/minecraft/router.js';
 import { sftpRouter } from './modules/minecraft/sftp-router.js';
@@ -14,12 +13,6 @@ import { wolRouter } from './modules/wol/router.js';
 import { filesRouter } from './modules/files/router.js';
 import { adblockRouter } from './modules/adblock/router.js';
 import { sitesRouter } from './modules/sites/router.js';
-import { dockerRouter } from './modules/docker/router.js';
-import { uptimeRouter } from './modules/uptime/router.js';
-import { startUptimeMonitor } from './modules/uptime/service.js';
-import { diskRouter } from './modules/disk/router.js';
-import { processRouter } from './modules/process/router.js';
-import { sensorsRouter } from './modules/sensors/router.js';
 import { configRouter } from './config/router.js';
 import { startPolling } from './polling.js';
 import { authMiddleware, authStatus, verifyWsUpgrade } from './auth.js';
@@ -43,7 +36,6 @@ app.get('/api/auth/status', (_req, res) => {
 app.use('/api', authMiddleware);
 
 app.use('/api/system', systemRouter);
-app.use('/api/ai-tokens', aiTokensRouter);
 app.use('/api/discord', discordRouter);
 app.use('/api/minecraft', minecraftRouter);
 app.use('/api/sftp', sftpRouter);
@@ -52,11 +44,6 @@ app.use('/api/wol', wolRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/adblock', adblockRouter);
 app.use('/api/sites', sitesRouter);
-app.use('/api/docker', dockerRouter);
-app.use('/api/uptime', uptimeRouter);
-app.use('/api/disk', diskRouter);
-app.use('/api/process', processRouter);
-app.use('/api/sensors', sensorsRouter);
 app.use('/api/config', configRouter);
 
 // Two WS endpoints sharing one HTTP server, routed by path on upgrade.
@@ -93,7 +80,6 @@ const PORT = process.env.PORT || 3001;
 
 await configManager.load();
 startPolling(wss);
-startUptimeMonitor();
 
 server.listen(PORT, () => {
   console.log(`Dashboard server running on :${PORT}`);
