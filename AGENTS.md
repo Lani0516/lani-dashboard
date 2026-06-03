@@ -38,9 +38,10 @@ Scope: module name or area (e.g. `server`, `client`, `sftp`, `discord`, `system`
 
 ## Branch Workflow
 
-For future hotfixes and code changes, create a new branch first. After the
-change is committed and pushed, open a PR and merge through GitHub instead of
-working directly on the target branch.
+For all future work, including new features, hotfixes, fixes, refactors, docs,
+and config changes, create a new branch first. After the change is committed
+and pushed, open a PR and merge through GitHub instead of working directly on
+the target branch.
 
 ## Memory Habit
 
