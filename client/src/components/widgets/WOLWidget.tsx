@@ -3,6 +3,7 @@ import { FaBolt, FaCheck } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { api } from '../../services/api';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { createId } from '../../utils/createId';
 import type { WOLDevice } from '@shared/types/index.js';
 
 export function WOLWidget() {
@@ -13,7 +14,7 @@ export function WOLWidget() {
 
   const handleAdd = () => {
     const device: WOLDevice = {
-      id: crypto.randomUUID(),
+      id: createId(),
       name: form.name,
       mac: form.mac,
       ip: form.ip || undefined,

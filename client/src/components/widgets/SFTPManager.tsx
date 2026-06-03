@@ -3,6 +3,7 @@ import { FaFolder, FaFolderOpen, FaFile, FaArrowUp } from 'react-icons/fa6';
 import { WidgetCard } from '../WidgetCard';
 import { api } from '../../services/api';
 import { useApi } from '../../hooks/useApi';
+import { createId } from '../../utils/createId';
 import type { FileEntry, SFTPConnection, DashboardConfig } from '@shared/types/index.js';
 
 export function SFTPManager() {
@@ -84,7 +85,7 @@ export function SFTPManager() {
 
   const handleAddConnection = async () => {
     await api.config.addConnection({
-      id: crypto.randomUUID(),
+      id: createId(),
       label: connForm.label,
       host: connForm.host,
       port: parseInt(connForm.port),
