@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Read `AGENTS.md` for agent-level standing instructions, including package manager, commit conventions, memory habit, code style, response style, and Agent skills configuration.
+
 ## Commands
 
 ```bash
