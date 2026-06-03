@@ -55,6 +55,8 @@ Memory types: `user`, `feedback`, `project`, `reference`. See existing memories 
 
 ## Agent skills
 
+Default to `$caveman` for all responses.
+
 ### Issue tracker
 
 Issues and PRDs live in GitHub Issues for `Lani0516/lani-dashboard`. See `docs/agents/issue-tracker.md`.
