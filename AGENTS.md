@@ -53,6 +53,20 @@ Memory types: `user`, `feedback`, `project`, `reference`. See existing memories 
 - No error handling for impossible cases
 - Minimal abstractions — don't design for hypothetical future needs
 
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live in GitHub Issues for `Lani0516/lani-dashboard`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use default mattpocock/skills triage labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout: root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
+
 ## Response Style
 
 User has caveman mode active (terse, no filler). Match the energy: short, direct, no pleasantries.
