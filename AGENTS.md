@@ -36,6 +36,12 @@ Scope: module name or area (e.g. `server`, `client`, `sftp`, `discord`, `system`
 - Never `--no-verify`
 - Co-author line: `Co-Authored-By: Claude <noreply@anthropic.com>`
 
+## Branch Workflow
+
+For future hotfixes and code changes, create a new branch first. After the
+change is committed and pushed, open a PR and merge through GitHub instead of
+working directly on the target branch.
+
 ## Memory Habit
 
 When learning user preferences, constraints, or decisions not obvious from code:
